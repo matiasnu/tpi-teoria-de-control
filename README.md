@@ -21,7 +21,8 @@ La simulación (implementada en `sim/token_bucket.py`) analiza el comportamiento
 
 ## Instalación
 
-1.  Clonar el repositorio:bash
+1.  Clonar el repositorio:
+    ```bash
     git clone [https://github.com/](https://github.com/matiasnu/tpi-teoria-de-control.git)
     cd tpi-teoria-de-control
     ```
@@ -46,4 +47,3 @@ jupyter notebook
 ```
 
 Luego, abra el archivo `notebooks/analisis_simulacion.ipynb` desde la interfaz de Jupyter en su navegador.
-```
