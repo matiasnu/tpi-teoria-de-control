@@ -1,49 +1,131 @@
-# TPI Teoría de Control: Modelado de Rate Limiter (PI No Lineal)
+# TPI Teoría de Control: Simulación de Controlador PD para Rate Limiter
 
-Este repositorio contiene la simulación y el análisis para el Trabajo Práctico Integrador de la materia Teoría de Control (K4572) de la UTN FRBA.
+**Alumno:** Matías Ezequiel Nuñez  
+**Materia:** Teoría de Control (K4572) - UTN FRBA
 
-## Descripción
+Este repositorio contiene la simulación y el análisis del Trabajo Práctico Integrador que modela un sistema de **Rate Limiting** como un lazo de control cerrado con **Controlador PD** (Proporcional-Derivativo).
 
-El proyecto modela un sistema de *Rate Limiter* (basado en el algoritmo *Token Bucket*) como un sistema de control de lazo cerrado, fundamentado en la teoría de W. Bolton.
+## 🚀 Acceso Rápido - Google Colab
 
-La tesis central del trabajo es que el algoritmo **Token Bucket** no es una simple heurística, sino un **Controlador Proporcional-Integral (PI) No Lineal**:
+**Para ejecutar la simulación sin instalar nada, haga clic aquí:**
 
-*   **Acción Integral (I):** El "balde" de tokens, que acumula (integra) el error entre la tasa de generación (Referencia, `R`) y la tasa de consumo (Salida, `Y`).
-*   **Acción Proporcional (P):** La lógica de decisión ON/OFF (`Permitir/Rechazar`), que actúa como un control proporcional de dos posiciones (ganancia infinita) basado en el estado del integrador.
-*   **Ausencia de Acción Derivativa (D):** El sistema es *reactivo* (al estado del balde) y no *predictivo* (no mide la *velocidad* del pico de tráfico).
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/matiasnu/tpi-teoria-de-control/blob/master/notebooks/simulacion_controlador.ipynb)
 
-## Simulación y Análisis
+La simulación interactiva incluye controles deslizantes (sliders) para ajustar las ganancias Kp y Kd en tiempo real, y permite cambiar entre diferentes escenarios de carga (Ráfagas vs. Ataque DoS).
 
-La simulación (implementada en `sim/token_bucket.py`) analiza el comportamiento del sistema bajo dos escenarios clave para validar el modelo PI:
+## 📋 Descripción del Sistema
 
-1.  **Respuesta Transitoria a Ráfagas:** Analiza cómo el parámetro `B` (Capacidad del Bucket) y la Acción Integral gestionan picos de tráfico cortos.
-2.  **Estabilidad y Error en Estado Estacionario (Ataque DoS):** Comprueba la predicción teórica de que un sistema Tipo 1 (con PI) tendrá un **Error en Estado Estacionario Nulo (`e_ss = 0`)** frente a una perturbación de escalón sostenida.
+A diferencia del enfoque clásico de Token Bucket (que funciona como un controlador PI), este proyecto implementa:
 
-## Instalación
+1. **Controlador PD:** $G_c(s) = K_p + K_d \cdot s$
+2. **Actuador con Memoria:** El mecanismo de asignación de recursos (Bucket/Autoscaler) actúa como un integrador puro en el lazo directo
+3. **Realimentación Unitaria:** $H(s) = 1$
 
-1.  Clonar el repositorio:
-    ```bash
-    git clone [https://github.com/](https://github.com/matiasnu/tpi-teoria-de-control.git)
-    cd tpi-teoria-de-control
-    ```
+### Objetivo del TPI
 
-2.  (Recomendado) Crear y activar un entorno virtual:
-    ```bash
-    python -m venv venv
-    source venv/bin/activate  # En Windows: venv\Scripts\activate
-    ```
+Validar que el sistema es estable y presenta **error estacionario nulo** ($e_{ss}=0$) gracias a la naturaleza "Tipo 1" del lazo completo, a pesar de que el controlador es PD (sin acción integral explícita).
 
-3.  Instalar las dependencias:
-    ```bash
-    pip install -r requirements.txt
-    ```
+La clave es que el **actuador tiene memoria** (acumula recursos/tokens), lo que añade un polo en el origen al lazo abierto, convirtiendo al sistema en Tipo 1.
 
-## Uso
+## 🧪 Escenarios de Simulación
 
-Para ejecutar las simulaciones y visualizar el análisis, inicie el servidor de Jupyter Notebook:
+La simulación analiza el comportamiento del sistema bajo dos escenarios:
+
+1. **Ráfagas de Tráfico:** Evalúa la respuesta transitoria ante picos cortos de tráfico (t=5s y t=15s)
+2. **Ataque DoS Sostenido:** Comprueba la estabilidad y el error en estado estacionario ante una perturbación constante desde t=5s
+
+## 💻 Instalación Local (Opcional)
+
+Si prefiere ejecutar la simulación localmente en lugar de usar Google Colab:
+
+### Opción 1: Ejecutar el Notebook Interactivo
+
+1. Clonar el repositorio:
+   ```bash
+   git clone https://github.com/matiasnu/tpi-teoria-de-control.git
+   cd tpi-teoria-de-control
+   ```
+
+2. (Recomendado) Crear y activar un entorno virtual:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # En Windows: venv\Scripts\activate
+   ```
+
+3. Instalar las dependencias:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. Iniciar Jupyter Notebook:
+   ```bash
+   jupyter notebook
+   ```
+
+5. Abrir el archivo `notebooks/simulacion_controlador.ipynb` desde la interfaz de Jupyter
+
+**Nota:** Para usar widgets interactivos en VSCode o Jupyter Lab, necesitará instalar:
+```bash
+pip install ipympl
+```
+Y usar `%matplotlib widget` en lugar de `%matplotlib inline`.
+
+### Opción 2: Ejecutar el Simulador Standalone
+
+Para ejecutar el simulador gráfico sin Jupyter:
 
 ```bash
-jupyter notebook
+python sim/controlador_pd.py
 ```
 
-Luego, abra el archivo `notebooks/analisis_simulacion.ipynb` desde la interfaz de Jupyter en su navegador.
+Esto abrirá una ventana interactiva con matplotlib donde podrá ajustar los parámetros Kp y Kd mediante sliders.
+
+## 📂 Estructura del Proyecto
+
+```
+tpi-teoria-de-control/
+│
+├── notebooks/
+│   └── simulacion_controlador.ipynb    # Notebook interactivo (compatible con Colab)
+│
+├── sim/
+│   ├── __init__.py
+│   └── controlador_pd.py               # Simulador standalone con matplotlib
+│
+├── requirements.txt                     # Dependencias del proyecto
+└── README.md                            # Este archivo
+```
+
+## 🎮 Uso de la Simulación Interactiva
+
+### Controles Disponibles
+
+- **Slider Kp (Ganancia Proporcional):** Rango 0.0 - 5.0
+  - ↑ Kp: Respuesta más rápida, pero puede causar sobrepicos (overshoot)
+  - ↓ Kp: Respuesta más lenta y suave
+
+- **Slider Kd (Ganancia Derivativa):** Rango 0.0 - 5.0
+  - ↑ Kd: Mayor amortiguamiento, reduce oscilaciones
+  - ↓ Kd: Menor amortiguamiento
+
+- **Selector de Escenario:**
+  - **Ráfagas:** Picos de tráfico cortos en t=5s (150 req/s) y t=15s (80 req/s)
+  - **DoS:** Ataque sostenido de 400 req/s desde t=5s hasta el final
+
+### Gráficos Generados
+
+1. **Respuesta del Sistema:** Muestra el Setpoint (θᵢ), la salida del sistema (Y) y la perturbación (D)
+2. **Error:** Muestra e(t) = R(t) - Y(t)
+3. **Señal de Control:** Muestra u(t), la salida del controlador PD
+
+## 🔬 Resultados Esperados
+
+### Escenario Ráfagas
+- El sistema debe responder rápidamente a los picos
+- Mayor Kd reduce las oscilaciones
+- La salida debe volver al setpoint después de cada ráfaga
+
+### Escenario DoS
+- **Resultado clave:** El error debe converger a cero en estado estacionario (e_ss = 0)
+- Esto valida que el sistema es Tipo 1 gracias a la memoria del actuador
+- El sistema debe mantener estabilidad incluso bajo carga sostenida
